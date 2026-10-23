@@ -1,0 +1,117 @@
+% docref: References to sections in package documentation.
+%
+% Copyright (C) 2026 Amer Amikhteh
+%
+% This package is free software: you may redistribute it and/or modify
+% it under the terms of the LaTeX Project Public License as published
+% by the LaTeX Project, either version 1.3c of the License, or
+% (at your option) any later version.
+%
+% This package is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty
+% of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+% The full license text is available at:
+% https://www.latex-project.org/lppl/
+%
+% This work is "maintained" by Amer Amikhteh.
+%
+% The current maintainer of this work is Amer Amikhteh.
+%
+% This package consists of the file docref.sty and the file docref.lua.
+
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{docref}[2026/10/23 v0.1 Package documentation references]
+
+\RequirePackage{iftex}
+
+\ifLuaTeX\else
+    \PackageError{docref}
+    {This package requires LuaLaTeX}
+    {Compile this document with LuaLaTeX.}
+    \expandafter\endinput
+\fi
+
+\makeatletter
+
+\directlua{
+    docref = dofile(kpse.find_file("docref.lua"))
+}
+
+
+\NewDocumentCommand{\docref}{m m}{%
+    \directlua{
+        local package = "\luaescapestring{#1}"
+        local label   = "\luaescapestring{#2}"
+
+        local ok, result = pcall(docref.reference, package, label)
+
+        if ok then
+        tex.sprint(-2, result)
+        else
+        tex.sprint(-2, "??")
+
+        local detail = tostring(result)
+        local slash  = string.char(92)
+        local lbrace = string.char(123)
+        local rbrace = string.char(125)
+
+        local registration =
+        slash .. "DocRefSource" ..
+        lbrace .. package .. rbrace ..
+        lbrace .. "<source>" .. rbrace
+
+        local message
+
+        if detail:find(
+        "Cannot find documentation source",
+        1,
+        true
+        ) then
+        message =
+        "No documentation source was found automatically for package '" ..
+        package .. "'. Add " .. registration ..
+        " to the preamble."
+
+        elseif detail:find(
+        "Cannot locate label",
+        1,
+        true
+        ) then
+        message =
+        "Label '" .. label ..
+        "' was not found for package '" ..
+        package .. "'. Add " .. registration ..
+        " to the preamble, using the correct source file."
+
+        else
+        message =
+        "Could not resolve label '" .. label ..
+        "' for package '" .. package ..
+        "'. Add " .. registration ..
+        " to the preamble."
+        end
+
+        texio.write_nl("term and log", "")
+        texio.write_nl("term and log", "Package docref Warning:")
+        texio.write_nl("term and log", "  " .. message)
+        texio.write_nl("term and log", "")
+        end
+    }%
+}
+
+
+% Optional registration when the documentation source is not found automatically.
+% Usage: \DocRefSource{package}{source-file}
+\NewDocumentCommand{\DocRefSource}{m m}{%
+    \directlua{
+        docref.register(
+        "\luaescapestring{#1}",
+        "\luaescapestring{#2}"
+        )
+    }%
+}
+
+\makeatother
+\endinput

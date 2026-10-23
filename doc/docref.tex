@@ -1,0 +1,61 @@
+\documentclass{article}
+\ProvidesFile{docref.tex}[2026/10/23 v0.1 docref manual]
+\usepackage{iftex}
+\ifLuaTeX\else
+  \PackageError{docref manual}{LuaLaTeX is required}{Compile this manual with LuaLaTeX.}
+\fi
+
+\title{The \texttt{docref} Package}
+\author{Amer Amikhteh}
+
+
+\usepackage{pkgmeta}
+\usepackage{datemultical}
+\dmcset{docref}{\pkgmeta[year]{docref}}{\pkgmeta[month]{docref}}{\pkgmeta[day]{docref}}
+
+\date{%
+    Version \pkgmeta[version]{docref}\\[2pt]
+    \dmc{docref}{long}}
+
+\begin{document}
+\maketitle
+
+\noindent\texttt{docref} looks up section numbers for labels in another package's documentation source. It is intended for references to documentation that is available locally.
+
+\section{Usage}
+Load the package and use \texttt{\string\docref} with the package name and label. The command produces the section number, or \texttt{??} if the reference cannot be resolved.
+
+\begin{verbatim}
+\usepackage{docref}
+
+See section \docref{pkg}{sec:overview}.
+\end{verbatim}
+
+\texttt{\string\docref} returns a section number only; it does not return a title or page number.
+
+\section{Manual source registration}
+If automatic discovery does not find the documentation source, register its file in the preamble with \texttt{\string\DocRefSource}. The file name may include a relative path.
+
+\begin{verbatim}
+\DocRefSource{pkg}{<doc>}
+\end{verbatim}
+
+\section{Automatic source discovery}
+For an unregistered package, \texttt{docref} searches for common documentation file names with the extensions \texttt{.tex}, \texttt{.ltx}, and \texttt{.dtx}. Candidate names include the package name itself and names ending in \texttt{-doc} or \texttt{-manual}. The source scanner expands simple, braced \texttt{\string\input} and \texttt{\string\include} commands.
+
+\section{Limitations}
+The scanner recognizes labels associated with numbered \texttt{section}, \texttt{subsection}, \texttt{subsubsection}, \texttt{paragraph}, and \texttt{subparagraph} commands. It reads source text; it does not execute TeX. Input expansion is limited to simple braced file names, so sources relying on computed file names or other dynamic constructs may not be resolved correctly. Only section numbers are provided by \texttt{\string\docref}; titles and page numbers are not returned.
+
+\section{Requirements}
+\texttt{docref} requires LuaLaTeX. It uses the \texttt{kpsewhich} command for file lookup. The LuaFileSystem module \texttt{lfs} is optional; when available, it is used to validate cached source dependencies.
+
+
+\section{License and maintainer}
+\begin{itemize}
+    \item Copyright \textcopyright{} 2026 Amer Amikhteh. 
+    \item Distributed under the LaTeX Project Public License, version 1.3c or later.
+    \item Maintainer: Amer Amikhteh.
+\end{itemize}
+
+
+\end{document}

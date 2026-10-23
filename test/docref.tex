@@ -1,0 +1,44 @@
+\documentclass{article}
+
+\usepackage{docref}
+\usepackage{nameref}
+
+\DocRefSource{tcolorbox}{tcolorbox.doc.vignette.tex}
+
+\begin{document}
+    
+    \section{External documentation references}
+    
+    \subsection{Babel}
+    
+    The Babel selectors are described in
+    Section~\docref{babel}{selectors}.
+    
+    See also Section~\docref{babel}{inifiles}.
+    
+    \subsection{enumitem}
+    
+    The short labels provided by enumitem are described in
+    Section~\docref{enumitem}{s.short}.
+    
+    \subsection{XePersian}
+    
+    See the XePersian manual's
+    Section~\docref{xepersian}{basics}.
+    
+    \subsection{tcolorbox}
+    
+    See the tcolorbox manual's
+    Section~\docref{tcolorbox}{sec:vignette}.
+    
+    \subsection{babelbidi}
+    
+    See the babelbidi manual's
+    Section~\docref{babelbidi}{sec:language-selection}.
+    
+    \section{Short labels}\label{sec:short-labels}
+    
+    See Section~\nameref{sec:short-labels}
+    on page~\pageref{sec:short-labels}.
+    
+\end{document}
