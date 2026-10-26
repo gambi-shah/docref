@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{docref}
+\usepackage[colorlinks]{hyperref}
+\usepackage[bidi=basic]{babel}
+\babelprovide[main,import]{persian}
+\babelprovide[import]{english}
+\babelfont{rm}{HM XNiloofar}
+\babelfont[english]{rm}{TeX Gyre Termes}
+\DocRefSource{docref}{../doc/docref.tex}
+
+\begin{document}
+\section*{ارجاع‌های پیونددار به راهنمای بسته‌ها}
+
+ارجاع راست‌به‌چپ: بخش \docref{babel}{selectors} راهنمای بابل.
+
+\begin{otherlanguage}{english}
+Left-to-right reference: section \docref{babel}{selectors} of the Babel manual.
+\end{otherlanguage}
+
+توضیحات پیوندها در بخش \docref{docref}{sec:hyperlinks} راهنمای
+\foreignlanguage{english}{DocRef} آمده است.
+\end{document}

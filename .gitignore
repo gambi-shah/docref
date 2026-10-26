@@ -1,5 +1,6 @@
 # LaTeX auxiliary and generated files
 *.aux
+!doc/geometry-labels.aux
 *.fdb_latexmk
 *.fls
 *.log

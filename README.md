@@ -1,37 +1,52 @@
-LaTeX Package: DocRef v0.1 2026-10-23
+LaTeX Package: DocRef v0.2 2026-10-26
 ----------------------------------------
 
-Cross-references to labeled sections in external LaTeX package documentation.
+Cross-references to external LaTeX package documentation.
 
 ## Description
 
-`docref` resolves a label in another package’s documentation source and prints its section number. It requires LuaLaTeX, discovers common source filenames automatically, and can also scan simple `\input` and `\include` files. Unresolved references print `??` and produce a warning.
-
-## Installation
-
-Keep `docref.sty` and `docref.lua` together, either beside your document or in a TeX-searchable directory.
+`docref` retrieves reference numbers, titles, and page numbers from locally
+available package manuals. It requires LuaLaTeX.
 
 ## Usage
-
-Use `\docref{<package>}{<label>}` for a reference. If automatic discovery does not locate a source, register it with the optional `\DocRefSource{<package>}{<source-file>}` command:
 
 ~~~latex
 \documentclass{article}
 \usepackage{docref}
-
-% Optional: specify the documentation source explicitly
-\DocRefSource{mypackage}{mypackage-manual.tex}
-
+\usepackage{hyperref} % optional
 \begin{document}
-See Section~\docref{mypackage}{sec:overview}.
+See Section~\docref{babel}{selectors},
+``\docnameref{babel}{selectors}'',
+on page~\docpageref{babel}{selectors}.
 \end{document}
 ~~~
 
-Section numbers are read from source text; titles and page numbers are not provided.
+All three commands take a package name and label. With `hyperref`, references
+link to the PDF manual; starred forms suppress links. Unresolved values
+produce `??` and a warning.
 
+Common documentation source names are discovered automatically. To select
+a source or auxiliary file explicitly, use:
+
+~~~latex
+\DocRefSource{pkg}{build/manual.aux}[build/manual.pdf]
+~~~
+
+The first file may be `.tex`, `.ltx`, `.dtx`, or `.aux`; the optional final
+argument specifies a PDF file or URL. Auxiliary records support all label
+types, including figures, tables, equations, and custom counters. Titles
+require `nameref` or `hyperref` in the target manual; exact destinations
+require `hyperref` there. Without auxiliary records, lookup is limited to
+source headings and PDF information.
+
+## Installation
+
+Keep `docref.sty` and `docref.lua` together beside your document or in a
+TeX-searchable directory.
 
 ## Documentation
-See the [main manual](doc/docref.pdf) for configuration and examples.
+
+See the [main manual](doc/docref.pdf) for lookup rules and examples.
 
 ## License and maintainer
 

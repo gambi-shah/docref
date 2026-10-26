@@ -1,0 +1,53 @@
+% Build the fixtures in separate directories and define \TestRoot to their
+% parent. \TestOrder = before/after/none/draft; \TestMain = english/persian.
+\documentclass{article}
+\providecommand\TestRoot{.}
+\providecommand\TestOrder{after}
+\providecommand\TestMain{english}
+\def\testbefore{before}\def\testnone{none}\def\testdraft{draft}
+\def\testenglish{english}
+\ifx\TestOrder\testbefore\usepackage[colorlinks]{hyperref}\fi
+\usepackage{docref}
+\ifx\TestOrder\testnone\else
+  \ifx\TestOrder\testdraft\usepackage[draft]{hyperref}\else
+    \usepackage[colorlinks]{hyperref}
+  \fi
+\fi
+\usepackage[bidi=basic]{babel}
+\ifx\TestMain\testenglish
+  \babelprovide[main,import]{english}\babelprovide[import]{persian}
+\else
+  \babelprovide[main,import]{persian}\babelprovide[import]{english}
+\fi
+\DocRefSource{aux-target}{\TestRoot/aux/hyperref-manual.tex}
+  [\TestRoot/aux/manual with spaces.pdf]
+\DocRefSource{standard-target}{\TestRoot/standard/hyperref-chapter.tex}
+\DocRefSource{plain-target}{\TestRoot/plain/hyperref-manual.tex}
+\DocRefSource{missing-pdf}{\TestRoot/aux/hyperref-manual.tex}
+  [\TestRoot/missing.pdf]
+\DocRefSource{remote-target}{\TestRoot/aux/hyperref-manual.tex}
+  [https://example.invalid/manual.pdf]
+\begin{document}
+\ifx\TestOrder\testnone\else
+  \pdfbookmark{Babel section \docref{babel}{selectors}}{docref-test-bookmark}
+\fi
+\parindent=0pt
+\textdir TLT\pardir TLT
+\docref{aux-target}{sec:target}\par
+\docref{aux-target}{sec:nested}\par
+\docref{standard-target}{sec:target}\par
+\docref{plain-target}{sec:target}\par
+\docref{missing-pdf}{sec:target}\par
+\docref{remote-target}{sec:target}\par
+\docref{aux-target}{not-a-label}\par
+\textdir TRT\pardir TRT
+\docref{aux-target}{sec:target}\par
+\textdir TLT\pardir TLT
+\docref{babel}{selectors}\par
+\ifx\TestOrder\testnone
+  \directlua{docref.link_target = function() docref_link_called = true end}
+  \docref{aux-target}{sec:target}\par
+  \directlua{assert(not docref_link_called, 'Unlinked mode did a link lookup')}
+\fi
+\typeout{DOCREF HYPERREF REGRESSION COMPILED}
+\end{document}

@@ -1,0 +1,38 @@
+\documentclass{article}
+
+\usepackage{docref}
+\usepackage{xr-hyper}
+
+\usepackage[
+bidi=basic,
+layout=sectioning counters lists contents footnotes captions
+columns graphics extras pars nopars,
+english,
+main=persian
+]{babel}
+
+\babelfont[persian]{rm}{HM XNiloofar}
+
+\begin{document}
+
+    \section{A}
+    \subsection{B}
+    \subsection{C}
+
+    برای توضیحات بیشتر قسمت
+    \babelsublr{\docref{babel}{selectors}}
+    راهنمای بابل رو ببینید.
+
+% ابتدا خروجی Lua را در یک ماکرو ذخیره می‌کنیم.
+\edef\DocRefValue{%
+    \directlua{
+    tex.sprint(-2, docref.reference("babel", "selectors"))
+    }%
+}
+
+\babelsublr{A: 1.9}\par
+\babelsublr{B: \DocRefValue}\par
+\babelsublr{C: \docref{babel}{selectors}}\par
+
+
+\end{document}

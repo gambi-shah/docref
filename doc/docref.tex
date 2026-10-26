@@ -1,61 +1,122 @@
+% !TeX program = lualatex
 \documentclass{article}
-\ProvidesFile{docref.tex}[2026/10/23 v0.1 docref manual]
+\ProvidesFile{docref.tex}[2026/10/26 v0.2 docref manual]
 \usepackage{iftex}
 \ifLuaTeX\else
   \PackageError{docref manual}{LuaLaTeX is required}{Compile this manual with LuaLaTeX.}
 \fi
 
-\title{The \texttt{docref} Package}
-\author{Amer Amikhteh}
-
-
 \usepackage{pkgmeta}
 \usepackage{datemultical}
 \dmcset{docref}{\pkgmeta[year]{docref}}{\pkgmeta[month]{docref}}{\pkgmeta[day]{docref}}
+\usepackage{docref}
+\usepackage[colorlinks]{hyperref}
+\DocRefSource{geometry}{geometry-labels.aux}[geometry.pdf]
 
-\date{%
-    Version \pkgmeta[version]{docref}\\[2pt]
-    \dmc{docref}{long}}
+\title{The \texttt{docref} Package}
+\author{Amer Amikhteh}
+\date{Version \pkgmeta[version]{docref}\\[2pt]\dmc{docref}{long}}
 
 \begin{document}
 \maketitle
 
-\noindent\texttt{docref} looks up section numbers for labels in another package's documentation source. It is intended for references to documentation that is available locally.
+\noindent\texttt{docref} retrieves reference numbers, titles, and page numbers
+from locally available package documentation. It requires LuaLaTeX.
+Keep \texttt{docref.sty} and \texttt{docref.lua} together beside your document
+or in a TeX-searchable directory.
 
-\section{Usage}
-Load the package and use \texttt{\string\docref} with the package name and label. The command produces the section number, or \texttt{??} if the reference cannot be resolved.
+\section{Usage}\label{sec:hyperlinks}
+Each command takes a package name and a label.
+\verb|\docref{pkg}{label}| gives the reference number,
+\verb|\docnameref{pkg}{label}| the title or caption, and
+\verb|\docpageref{pkg}{label}| the page number.
 
+For example, refer to a section in the Babel manual:
 \begin{verbatim}
 \usepackage{docref}
+\usepackage{hyperref} % optional
 
-See section \docref{pkg}{sec:overview}.
+See Section~\docref{babel}{selectors},
+``\docnameref{babel}{selectors}'',
+on page~\docpageref{babel}{selectors}.
 \end{verbatim}
 
-\texttt{\string\docref} returns a section number only; it does not return a title or page number.
+This refers to Babel section~\docref{babel}{selectors},
+``\docnameref{babel}{selectors}'', on page~\docpageref{babel}{selectors}.
 
-\section{Manual source registration}
-If automatic discovery does not find the documentation source, register its file in the preamble with \texttt{\string\DocRefSource}. The file name may include a relative path.
-
+The same commands work for figures. This example uses the supplied label
+record from the \texttt{geometry}~6.0 manual:
 \begin{verbatim}
-\DocRefSource{pkg}{<doc>}
+\DocRefSource{geometry}{geometry-labels.aux}[geometry.pdf]
+
+Figure~\docref{geometry}{fig:Labc},
+``\docnameref{geometry}{fig:Labc}'',
+on page~\docpageref{geometry}{fig:Labc}.
 \end{verbatim}
 
-\section{Automatic source discovery}
-For an unregistered package, \texttt{docref} searches for common documentation file names with the extensions \texttt{.tex}, \texttt{.ltx}, and \texttt{.dtx}. Candidate names include the package name itself and names ending in \texttt{-doc} or \texttt{-manual}. The source scanner expands simple, braced \texttt{\string\input} and \texttt{\string\include} commands.
+This refers to Figure~\docref{geometry}{fig:Labc},
+``\docnameref{geometry}{fig:Labc}'', on page~\docpageref{geometry}{fig:Labc}.
 
-\section{Limitations}
-The scanner recognizes labels associated with numbered \texttt{section}, \texttt{subsection}, \texttt{subsubsection}, \texttt{paragraph}, and \texttt{subparagraph} commands. It reads source text; it does not execute TeX. Input expansion is limited to simple braced file names, so sources relying on computed file names or other dynamic constructs may not be resolved correctly. Only section numbers are provided by \texttt{\string\docref}; titles and page numbers are not returned.
+With \textsf{hyperref}, loaded before or after \texttt{docref}, references
+link to the external PDF. All three commands accept a star to suppress the
+link, for example \verb|\docref*{geometry}{fig:Labc}|.
+Unresolved values produce \texttt{??} and a warning.
+Dotted number components follow the surrounding text direction; digits
+within each component remain left to right.
 
-\section{Requirements}
-\texttt{docref} requires LuaLaTeX. It uses the \texttt{kpsewhich} command for file lookup. The LuaFileSystem module \texttt{lfs} is optional; when available, it is used to validate cached source dependencies.
+\section{Selecting a manual}
+Common source names include \texttt{pkg.tex}, \texttt{pkg-doc.tex}, and
+\texttt{pkg-manual.tex}; \texttt{.ltx} and \texttt{.dtx} sources are also
+supported. Installed documentation takes precedence over similarly named
+files in the working directory.
 
+Register a source or auxiliary file explicitly in the preamble:
+\begin{verbatim}
+\DocRefSource{pkg}{path/manual.tex}[path/manual.pdf]
+\end{verbatim}
+The optional final argument selects a PDF file or URL. Otherwise the PDF
+is sought beside the source and in TeX's documentation search path.
+A fragment's \verb|% !TeX root = manual.tex| comment selects its main
+document. An auxiliary file can be registered without the TeX source.
 
-\section{License and maintainer}
-\begin{itemize}
-    \item Copyright \textcopyright{} 2026 Amer Amikhteh. 
-    \item Distributed under the LaTeX Project Public License, version 1.3c or later.
-    \item Maintainer: Amer Amikhteh.
-\end{itemize}
+\section{Labels and lookup rules}
+For complete references, make the built manual's \texttt{.aux} file
+available. Its records supply numbers, titles, pages, and destinations for
+all label types, including chapters, figures, tables, equations, list items,
+and custom counters.
 
+Titles require records produced with \textsf{nameref} or \textsf{hyperref};
+exact link destinations require \textsf{hyperref} in the target manual.
+Titles are plain text; recorded empty values remain empty. Auxiliary files,
+including those for included chapters, are read as data.
+
+Source scanning alone handles headings from \texttt{section} to
+\texttt{subparagraph}, with labels following their headings.
+It cannot calculate arbitrary counters or pagination. PDF bookmarks and
+page labels provide fallback titles and pages; physical page numbers are
+used when page labels are absent.
+
+Without an auxiliary destination, a standard section destination is used
+only if it exists in the PDF; otherwise the link opens the manual at its
+beginning. If no PDF is found, the reference remains unlinked.
+
+\section{License}
+
+The \texttt{Docref} package is released under the
+\LaTeX~Project Public License (LPPL),
+version 1.3c or later.
+The full text of the license is available in the \texttt{LICENSE} file.
+
+\section{Author and Maintainer}
+
+The \texttt{Docref} package is developed and maintained by
+\textbf{Amer Amikhteh}.
+
+The project's source code, development versions, and issue tracker are
+available in the project repository:
+
+\begin{center}
+    \url{https://github.com/gambi-shah/docref}
+\end{center}
 
 \end{document}

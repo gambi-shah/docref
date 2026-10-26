@@ -1,0 +1,35 @@
+% Build twice; its AUX must work even when the source is unavailable.
+\documentclass{report}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\newcounter{example}[chapter]
+\renewcommand\theexample{Ex \Alph{chapter}-\arabic{example}(a)}
+\renewcommand\theHexample{custom-example}
+\makeatletter
+\newcommand\makeexample{\refstepcounter{example}\def\@currentlabelname{Worked example}}
+\makeatother
+\begin{document}
+\chapter{A chapter}\label{chap:one}
+\section{A section}\label{sec:one}
+\begin{figure}[ht]
+  \centering A diagram
+  \caption{Diagram caption}\label{fig:one}
+\end{figure}
+\begin{table}[ht]
+  \centering\begin{tabular}{cc}A&B\end{tabular}
+  \caption{Table caption}\label{tab:one}
+\end{table}
+\begin{equation}a=b\label{eq:one}\end{equation}
+\begin{enumerate}
+  \item First item\label{item:one}
+\end{enumerate}
+\makeexample
+\label{example:one}
+\phantomsection
+\makeatletter
+\let\@currentlabel\@empty\let\@currentlabelname\@empty
+\makeatother
+\label{empty}
+\appendix
+\chapter{An appendix}\label{app:one}
+\end{document}

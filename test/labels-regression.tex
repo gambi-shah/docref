@@ -1,0 +1,75 @@
+% TestRoot contains aux/labels-manual.aux and source/labels-manual.tex.
+\documentclass{article}
+\providecommand\TestRoot{.}
+\providecommand\TestMain{english}
+\usepackage{docref}
+\usepackage{hyperref}
+\usepackage[bidi=basic]{babel}
+\def\testenglish{english}
+\ifx\TestMain\testenglish
+  \babelprovide[main,import]{english}\babelprovide[import]{persian}
+\else
+  \babelprovide[main,import]{persian}\babelprovide[import]{english}
+\fi
+\babelfont{rm}{TeX Gyre Termes}
+\babelfont[persian]{rm}{Amiri}
+% No TeX source is available for this registration.
+\DocRefSource{labels}{\TestRoot/aux/labels-manual.aux}
+\DocRefSource{source-only}{\TestRoot/source/labels-manual.tex}
+\begin{document}
+% A decorated counter must stay in one LTR run even in an RTL paragraph.
+\setbox0=\hbox dir TRT{\docref*{labels}{decorated}}
+\directlua{
+  local hlist = node.id('hlist')
+  local value = tex.box[0].head
+  while value and not (value.id == hlist) do value = value.next end
+  assert(value and value.dir == 'TRT', 'Lost ambient reference direction')
+  local run = value.head
+  assert(run and run.id == hlist and run.dir == 'TLT' and not run.next,
+    'Split a decorated counter into section-number components')
+  local text = ''
+  for n in node.traverse(run.head) do
+    if n.id == node.id('glyph') then text = text .. utf8.char(n.char) end
+  end
+  assert(text == '(A.12)', 'Changed decorated reference text')
+  local function check(label, field, expected)
+    local actual = docref.reference('labels', label, field)
+    assert(actual == expected, label .. '/' .. field .. ': ' .. actual)
+  end
+  for label, number in pairs({['chap:one']='1', ['sec:one']='1.1',
+    ['fig:one']='1.1', ['tab:one']='1.1', ['eq:one']='1.1',
+    ['item:one']='1', ['example:one']='Ex A-1(a)', ['app:one']='A',
+    ['legacy']='A-1(a)', ['unicode']='الف-۱', ['decorated']='(A.12)'}) do
+    check(label, 'number', number)
+  end
+  check('fig:one', 'name', 'Diagram caption')
+  check('tab:one', 'name', 'Table caption')
+  check('chap:one', 'name', 'A chapter')
+  check('example:one', 'name', 'Worked example')
+  check('app:one', 'name', 'An appendix')
+  check('legacy', 'page', 'vii')
+  check('empty', 'number', '')
+  check('empty', 'name', '')
+  assert(not pcall(docref.reference, 'labels', 'legacy', 'name'),
+    'Invented a title for a legacy two-field record')
+  for _, label in ipairs({'fig:one', 'tab:one', 'eq:one', 'item:one', 'example:one'}) do
+    assert(not pcall(docref.reference, 'source-only', label),
+      'Attributed the preceding section number to ' .. label)
+  end
+  assert(not pcall(docref.reference, 'labels', 'not-a-label'),
+    'Unknown label was resolved from AUX command text')
+}
+\parindent=0pt
+\foreignlanguage{english}{%
+  Chapter \docref{labels}{chap:one}: \docnameref{labels}{chap:one}.\par
+  Figure \docref{labels}{fig:one}: \docnameref{labels}{fig:one},
+  page \docpageref{labels}{fig:one}.\par
+  Table \docref{labels}{tab:one}: \docnameref{labels}{tab:one}.\par
+  Equation \docref{labels}{eq:one}; item \docref{labels}{item:one}.\par
+  \docref{labels}{example:one}: \docnameref{labels}{example:one}.\par
+  Appendix \docref{labels}{app:one}: \docnameref{labels}{app:one},
+  page \docpageref{labels}{app:one}.\par
+  Legacy record \docref{labels}{legacy}, page \docpageref{labels}{legacy}.\par
+}
+\typeout{DOCREF GENERIC LABEL REGRESSION PASSED}
+\end{document}

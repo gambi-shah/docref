@@ -1,0 +1,16 @@
+% Fixture: compile twice, optionally defining \TestCustom or \TestNoHyper.
+\documentclass{article}
+\usepackage{docmute}
+\ifdefined\TestNoHyper\else\usepackage{hyperref}\fi
+\ifdefined\TestCustom
+  \renewcommand\theHsubsection{custom-\arabic{subsection}}
+\fi
+\begin{document}
+\section*{Preface}
+\begin{verbatim}
+\section{A code sample is not a heading}
+\end{verbatim}
+\section{Outer section}\label{sec:outer}
+\ifdefined\TestCustom\setcounter{subsection}{7}\fi
+\include{hyperref-chapter}
+\end{document}

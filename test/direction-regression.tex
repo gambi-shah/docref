@@ -1,0 +1,76 @@
+% Compile from the package root. Optional command-line definitions:
+% \TestBackend = babel/babelbidi/none; \TestMain = persian/english.
+\documentclass{article}
+\providecommand\TestBackend{babel}
+\providecommand\TestMain{persian}
+\usepackage{docref}
+\def\testnone{none}
+\def\testenglish{english}
+\ifx\TestBackend\testnone\else
+  \edef\testload{\noexpand\usepackage[bidi=basic]{\TestBackend}}\testload
+  \ifx\TestMain\testenglish
+    \babelprovide[main,import]{english}
+    \babelprovide[import]{persian}
+  \else
+    \babelprovide[main,import]{persian}
+    \babelprovide[import]{english}
+  \fi
+\fi
+\parindent=0pt
+
+\directlua{
+  % Use fixed multilevel counters to test formatting independently of lookup.
+  local reference = docref.reference
+  docref.reference = function(package, label)
+    if package == 'direction-test' then return label end
+    return reference(package, label)
+  end
+  function docref_check(direction, expected)
+    local hlist, glyph = node.id('hlist'), node.id('glyph')
+    local ref = tex.box[0].head
+    while ref and not (ref.id == hlist) do ref = ref.next end
+    assert(ref and ref.dir == direction,
+      'Wrong reference direction: ' .. tostring(ref and ref.dir) ..
+      ', expected ' .. direction)
+    local parts, dots, count = {}, 0, 0
+    for n in node.traverse(ref.head) do
+      if n.id == hlist then
+        assert(n.dir == 'TLT', 'Counter digits must stay LTR')
+        local digits = ''
+        for g in node.traverse(n.head) do
+          if g.id == glyph then digits = digits .. utf8.char(g.char) end
+        end
+        count = count + 1
+        parts[count] = digits
+      elseif n.id == glyph then
+        assert(n.char == 46, 'Unexpected reference separator')
+        dots = dots + 1
+      end
+    end
+    assert(table.concat(parts, '.') == expected, 'Wrong counter components')
+    assert(dots == count - 1, 'Wrong separator count')
+  end
+}
+\newcommand\testref[1]{%
+  \edef\teststate{\the\textdir/\the\pardir/\the\mathdir/\the\bodydir}%
+  \setbox0=\hbox dir\the\textdir{\docref{direction-test}{#1}}%
+  \edef\testnow{\the\textdir/\the\pardir/\the\mathdir/\the\bodydir}%
+  \ifx\teststate\testnow\else\errmessage{Reference leaked its direction}\fi
+  \directlua{docref_check('\the\textdir', '#1')}%
+  \noindent\copy0\par
+}
+\begin{document}
+\textdir TLT\pardir TLT\mathdir TLT
+\testref{12.34.56}
+\testref{12}
+\textdir TRT\pardir TRT\mathdir TRT
+\testref{12.34.56}
+\testref{12}
+\testref{??}
+\ifx\TestBackend\testnone\else
+  \selectlanguage{english}\testref{12.34.56}
+  \selectlanguage{persian}\testref{12.34.56}
+  \foreignlanguage{english}{\testref{12.34.56}}
+\fi
+\typeout{DOCREF DIRECTION REGRESSION PASSED}
+\end{document}

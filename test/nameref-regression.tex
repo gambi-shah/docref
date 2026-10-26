@@ -1,0 +1,70 @@
+% Build the fixtures in TestRoot/{fields-aux,fields-pdf,fields-source}.
+% TestOrder = before/after/none/draft; TestMain = english/persian.
+\documentclass{article}
+\providecommand\TestRoot{.}
+\providecommand\TestOrder{after}
+\providecommand\TestMain{english}
+\def\testbefore{before}\def\testnone{none}\def\testdraft{draft}
+\def\testenglish{english}
+\ifx\TestOrder\testbefore\usepackage{hyperref}\fi
+\usepackage{docref}
+\usepackage{nameref}
+\ifx\TestOrder\testnone\else
+  \ifx\TestOrder\testdraft\usepackage[draft]{hyperref}\else\usepackage{hyperref}\fi
+\fi
+\usepackage[bidi=basic]{babel}
+\ifx\TestMain\testenglish
+  \babelprovide[main,import]{english}\babelprovide[import]{persian}
+\else
+  \babelprovide[main,import]{persian}\babelprovide[import]{english}
+\fi
+\babelfont{rm}{TeX Gyre Termes}
+\babelfont[persian]{rm}{Amiri}
+\DocRefSource{fields-aux}{\TestRoot/fields-aux/nameref-manual.tex}
+\DocRefSource{fields-pdf}{\TestRoot/fields-pdf/nameref-manual.tex}
+\DocRefSource{fields-source}{\TestRoot/fields-source/nameref-manual.tex}
+\begin{document}
+\directlua{
+  local function check(package, label, field, expected)
+    local result = docref.reference(package, label, field)
+    assert(result == expected, field .. ': ' .. result .. ' expected ' .. expected)
+  end
+  for _, package in ipairs({'fields-aux', 'fields-pdf'}) do
+    check(package, 'sec:target', 'number', '1')
+    check(package, 'sec:target', 'name', 'Target code & 50' .. string.char(37))
+    check(package, 'sec:target', 'page', '40')
+    check(package, 'sec:preface', 'name', 'Preface')
+    check(package, 'sec:preface', 'page', 'iii')
+  end
+  check('fields-pdf', 'sec:unicode', 'name', 'Résumé – données')
+  check('fields-aux', 'sec:unicode', 'name', 'Résumé – données')
+  check('fields-source', 'sec:target', 'name', 'Target code & 50' .. string.char(37))
+  check('fields-aux', 'aux-only', 'name', 'عنوان فارسی')
+  check('fields-aux', 'aux-only', 'page', 'iii')
+  assert(not pcall(docref.reference, 'fields-source', 'sec:target', 'page'),
+    'Source-only page reference fabricated a page number')
+}
+\ifx\TestOrder\testnone\else
+  \pdfbookmark{\docnameref{fields-aux}{sec:target}, p. \docpageref*{fields-aux}{sec:target}}{fields-bookmark}
+  \pdfbookmark{\docnameref*{fields-pdf}{sec:unicode}; \docnameref{fields-aux}{aux-only}}{unicode-bookmark}
+\fi
+\parindent=0pt
+\textdir TLT\pardir TLT
+\docref{fields-aux}{sec:target};
+\docnameref{fields-aux}{sec:target};
+\docpageref{fields-aux}{sec:target}\par
+\docref*{fields-aux}{sec:target};
+\docnameref*{fields-aux}{sec:target};
+\docpageref*{fields-aux}{sec:target}\par
+\docnameref{fields-pdf}{sec:unicode};
+\docpageref{fields-pdf}{sec:preface}\par
+\docnameref{fields-source}{sec:target};
+\docpageref{fields-source}{sec:target}\par
+\textdir TRT\pardir TRT
+\foreignlanguage{persian}{\docnameref{fields-aux}{aux-only}};
+\docpageref{fields-aux}{aux-only}\par
+\textdir TLT\pardir TLT
+\section{Local title}\label{sec:local}
+\nameref{sec:local}; \pageref{sec:local}.
+\typeout{DOCREF NAME/PAGE REGRESSION PASSED}
+\end{document}

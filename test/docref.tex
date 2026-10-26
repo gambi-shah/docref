@@ -2,8 +2,8 @@
 
 \usepackage{docref}
 \usepackage{nameref}
-
-\DocRefSource{tcolorbox}{tcolorbox.doc.vignette.tex}
+\usepackage{hyperref}
+%\DocRefSource{tcolorbox}{tcolorbox.doc.vignette.tex}
 
 \begin{document}
     
@@ -40,5 +40,8 @@
     
     See Section~\nameref{sec:short-labels}
     on page~\pageref{sec:short-labels}.
+
+    External title: ``\docnameref{babel}{selectors}'',
+    on page~\docpageref{babel}{selectors}.
     
 \end{document}

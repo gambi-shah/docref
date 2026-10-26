@@ -1,0 +1,12 @@
+% Fixture: build twice with hyperref; also test a copy with no auxiliary file.
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\begin{document}
+\pagenumbering{roman}\setcounter{page}{3}
+\section*{Preface}\addcontentsline{toc}{section}{Preface}\label{sec:preface}
+\newpage
+\pagenumbering{arabic}\setcounter{page}{40}
+\section{Target \texttt{code} \& 50\%}\label{sec:target}
+\subsection{R\'esum\'e -- donn\'ees}\label{sec:unicode}
+\end{document}

@@ -1,0 +1,26 @@
+\documentclass{article}
+\usepackage{docref}
+\usepackage[bidi=basic]{babel}
+\babelprovide[main,import]{persian}
+\babelprovide[import]{english}
+
+\begin{document}
+
+\directlua{
+  local s = tostring(docref.reference("babel", "selectors"))
+  texio.write_nl("term and log", "DOCREF-RAW=[" .. s .. "]")
+  for _, c in utf8.codes(s) do
+    texio.write_nl("term and log", "DOCREF-CODEPOINT=" .. tostring(c))
+  end
+}
+
+1.9 \quad 9.1 \quad 12.34
+\par
+\docref{babel}{selectors}
+\par
+\foreignlanguage{english}{1.9 \quad 9.1 \quad 12.34}
+\par
+\foreignlanguage{english}{\docref{babel}{selectors}}
+\par
+
+\end{document}
